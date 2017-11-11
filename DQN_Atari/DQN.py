@@ -231,4 +231,4 @@ dqn = DeepQNetwork(atari_env        = 'SpaceInvaders-v4',
                    action_dimension = 6,
                    train_step       = 4)
 
-dqn.train()
+dqn.run()
