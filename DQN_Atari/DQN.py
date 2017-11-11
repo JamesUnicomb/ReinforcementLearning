@@ -13,7 +13,7 @@ from theano.tensor.extra_ops import to_one_hot
 from theano.tensor.raw_random import multinomial
 
 import lasagne
-from lasagne.updates import rmsprop, norm_constraint
+from lasagne.updates import rmsprop, total_norm_constraint
 from lasagne.objectives import squared_error
 from lasagne.layers import DenseLayer, InputLayer, ConcatLayer, Conv2DLayer, FlattenLayer, DimshuffleLayer, \
                            get_output, get_all_params, get_all_param_values, set_all_param_values
@@ -122,8 +122,13 @@ class DeepQNetwork:
         self.loss = self.loss.mean()
 
         self.params = get_all_params(self.q_)
+        
+        self.grads = T.grad(self.loss,
+                            self.params)
+                            
+        self.normed_grads = total_norm_constraint(self.grads, 1.0)
 
-        self.updates = rmsprop(self.loss,
+        self.updates = rmsprop(self.normed_grads,
                                self.params,
                                learning_rate = self.learning_rate)
 
@@ -223,12 +228,3 @@ class DeepQNetwork:
                 self.update_target()
 
             print 'epoch: %d, reward: %f' % (epoch, R)
-
-
-
-dqn = DeepQNetwork(atari_env        = 'SpaceInvaders-v4',
-                   state_dimension  = np.array([88,80,3]),
-                   action_dimension = 6,
-                   train_step       = 4)
-
-dqn.run()
