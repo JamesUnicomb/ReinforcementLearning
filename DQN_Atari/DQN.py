@@ -13,7 +13,7 @@ from theano.tensor.extra_ops import to_one_hot
 from theano.tensor.raw_random import multinomial
 
 import lasagne
-from lasagne.updates import adam, norm_constraint
+from lasagne.updates import rmsprop, norm_constraint
 from lasagne.objectives import squared_error
 from lasagne.layers import DenseLayer, InputLayer, ConcatLayer, Conv2DLayer, FlattenLayer, DimshuffleLayer, \
                            get_output, get_all_params, get_all_param_values, set_all_param_values
@@ -123,9 +123,9 @@ class DeepQNetwork:
 
         self.params = get_all_params(self.q_)
 
-        self.updates = adam(self.loss,
-                            self.params,
-                            learning_rate = self.learning_rate)
+        self.updates = rmsprop(self.loss,
+                               self.params,
+                               learning_rate = self.learning_rate)
 
         self.update_network = theano.function(inputs               = [self.X_state,
                                                                       self.X_action,
