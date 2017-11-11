@@ -29,6 +29,7 @@ class DeepQNetwork:
                  monitor_env   = False,
                  learning_rate = 0.001,
                  critic_update = 10,
+                 train_step    = 1,
                  gamma         = 0.95,
                  eps_max       = 1.0,
                  eps_min       = 0.1,
@@ -45,6 +46,7 @@ class DeepQNetwork:
         self.action_dimension = action_dimension
         self.learning_rate    = learning_rate
         self.critic_update    = critic_update
+        self.train_step       = train_step
         self.gamma            = gamma
         self.eps_max          = eps_max
         self.eps_min          = eps_min
@@ -196,25 +198,37 @@ class DeepQNetwork:
                             t_done)
 
 
+
+    def run(self):
+        for epoch in range(self.n_epochs):
+            state = self.env.reset()
+            done  = False
+            R     = 0.0
+            step  = 0
+
+            while not done:
+                action = dqn.get_action(state,epoch)
+                next_state, reward, done, info = dqn.env.step(action)
+                dqn.store_transition(state, action, reward, next_state, done)
+                
+                if step % self.train_step == 0:
+                    self.train()
+                
+                state = next_state
+
+                R    += reward
+                step += 1
+
+            if epoch % self.critic_update == 0:
+                self.update_target()
+
+            print 'epoch: %d, reward: %f' % (epoch, R)
+
+
+
 dqn = DeepQNetwork(atari_env        = 'SpaceInvaders-v4',
                    state_dimension  = np.array([88,80,3]),
-                   action_dimension = 6)
+                   action_dimension = 6,
+                   train_step       = 4)
 
-
-for epoch in range(dqn.n_epochs):
-    state = dqn.env.reset()
-    done  = False
-    R     = 0
-
-    while not done:
-        action = dqn.get_action(state,epoch)
-        next_state, reward, done, info = dqn.env.step(action)
-        dqn.store_transition(state, action, reward, next_state, done)
-        R += reward
-        dqn.train()
-        state = next_state
-
-    if epoch % 10 == 0:
-        dqn.update_target()
-
-    print 'epoch: %d, reward: %f' % (epoch, R)
+dqn.train()
