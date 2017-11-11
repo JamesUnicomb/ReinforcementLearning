@@ -207,9 +207,9 @@ class DeepQNetwork:
             step  = 0
 
             while not done:
-                action = dqn.get_action(state,epoch)
-                next_state, reward, done, info = dqn.env.step(action)
-                dqn.store_transition(state, action, reward, next_state, done)
+                action = self.get_action(state,epoch)
+                next_state, reward, done, info = self.env.step(action)
+                self.store_transition(state, action, reward, next_state, done)
                 
                 if step % self.train_step == 0:
                     self.train()
